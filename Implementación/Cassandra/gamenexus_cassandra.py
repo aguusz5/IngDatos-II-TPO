@@ -53,7 +53,7 @@ Comparación SQL relevante para la presentación:
   sin FK. La misma partida se escribe dos veces a propósito — escritura barata,
   lectura directa sin traversal.
 
-================================================================================
+
 """
 
 import uuid
@@ -109,6 +109,7 @@ def conectar_neo4j():
     print(f"[OK] Neo4j    → {NEO4J_URI}")
     return driver
 
+### Comentario de prueba
 
 # ─────────────────────────────────────────────
 # KEYSPACE Y TABLAS
