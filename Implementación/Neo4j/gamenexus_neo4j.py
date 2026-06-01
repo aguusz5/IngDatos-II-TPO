@@ -17,8 +17,10 @@ Requisitos:
 
 Neo4j debe estar corriendo antes de ejecutar.
   - Neo4j Desktop: iniciar el proyecto y hacer Start en la DB
-  - Docker: docker run -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j
+  - Docker: docker run --name neo4j-gamenexus -p 7474:7474 -p 7687:7687 \
+            -e NEO4J_AUTH=neo4j/password -d neo4j:latest
   - URI por defecto: bolt://localhost:7687  |  user: neo4j  |  pass: password
+  - Ajustá NEO4J_PASS en la sección CONFIGURACIÓN si usás otra contraseña.
 ================================================================================
 """
 
@@ -36,7 +38,7 @@ def obtener_juegos_desde_mongodb(limit=20):
     nodos :Juego en Neo4j. Así ambos motores comparten la misma
     fuente de verdad — MongoDB es el catálogo base.
     """
-    client = MongoClient("mongodb://localhost:27017/")
+    client = MongoClient(MONGO_URI)
     col = client["gamenexus"]["games"]
     
     juegos = []
@@ -60,9 +62,12 @@ def obtener_juegos_desde_mongodb(limit=20):
 #  CONFIGURACIÓN
 # ─────────────────────────────────────────────
 
+MONGO_URI  = "mongodb://localhost:27017/"   # URI de MongoDB local (default)
+
 NEO4J_URI  = "bolt://localhost:7687"
 NEO4J_USER = "neo4j"
-NEO4J_PASS = "grupo4tpo"       # Cambiar si tu instancia tiene otra contraseña
+NEO4J_PASS = "password"       # ← Cambiá por la contraseña que configuraste en Neo4j
+                               #   Docker default: "password"  (NEO4J_AUTH=neo4j/password)
 
 # Cantidad de jugadores y juegos sintéticos a generar
 N_JUGADORES = 50

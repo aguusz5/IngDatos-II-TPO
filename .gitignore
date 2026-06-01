@@ -1,6 +1,14 @@
-Implementaci�n/MongoDB/games.json
-Implementaci�n/MongoDB/archive/games.csv
+# Dataset grande — no versionar
 Implementación/MongoDB/games.json
-Implementación/MongoDB/archive/games.csv
+Implementación/MongoDB/archive/
 Implementación/MongoDB.zip
-Implementación/Neo4j/__pycache__/
+Datasets/
+
+# Cache de Python
+**/__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+**/.DS_Store

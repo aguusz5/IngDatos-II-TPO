@@ -63,7 +63,8 @@ MONGO_COL   = "games"
 
 NEO4J_URI   = "bolt://localhost:7687"
 NEO4J_USER  = "neo4j"
-NEO4J_PASS  = "password"          # ajustar si la contraseña es distinta
+NEO4J_PASS  = "password"          # ← Cambiá por la contraseña que configuraste en Neo4j
+                                   #   Docker default: "password"  (NEO4J_AUTH=neo4j/password)
 
 N_JUGADORES = 20
 N_SALAS     = 5
@@ -108,11 +109,11 @@ def cargar_juegos_desde_mongo(db, n=20):
     """
     pipeline = [
         {"$match": {
-            "name":   {"$exists": True, "$ne": ""},
-            "genres": {"$exists": True, "$ne": []}
+            "name":            {"$exists": True, "$ne": ""},
+            "taxonomy.genres": {"$exists": True, "$not": {"$size": 0}}
         }},
         {"$sample": {"size": n}},
-        {"$project": {"_id": 0, "steam_appid": 1, "name": 1, "genres": 1}}
+        {"$project": {"_id": 0, "steam_appid": 1, "name": 1, "genres": "$taxonomy.genres"}}
     ]
     juegos = list(db[MONGO_COL].aggregate(pipeline))
     print(f"  [MongoDB→Redis] {len(juegos)} juegos reales cargados.")

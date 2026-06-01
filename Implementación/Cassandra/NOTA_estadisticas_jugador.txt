@@ -1,0 +1,51 @@
+PROBLEMA Y FIX — estadisticas_jugador
+======================================
+
+QUE FALLABA
+-----------
+El script intentaba hacer esto en Cassandra:
+
+    UPDATE estadisticas_jugador
+    SET partidas_jugadas = partidas_jugadas + 1,
+        xp_total         = xp_total         + 50
+    WHERE jugador_id = 'jugador_001'
+
+Es decir, "tomá el valor actual y sumale algo". Cassandra no permite
+esa sintaxis en columnas normales (int). Solo existe para un tipo especial
+llamado COUNTER, y una tabla COUNTER no puede tener columnas de texto
+(nombre, ultimo_juego) ni timestamps mezcladas. Es una limitación del motor.
+
+POR QUE PASABA
+--------------
+El código fue escrito asumiendo que Cassandra funciona como SQL, donde
+podés hacer SET xp = xp + 50 en cualquier tabla. En Cassandra no es así.
+
+QUE SE CAMBIO
+-------------
+En lugar de pedirle a Cassandra que acumule, ahora lo acumula Python.
+Durante el loop de las 50 partidas, cada resultado se guarda en un
+diccionario en memoria:
+
+    acumulador = {
+        'jugador_001': { partidas_jugadas: 7, xp_total: 340, kills_total: 82, ... },
+        'jugador_007': { partidas_jugadas: 3, xp_total: 150, kills_total: 31, ... },
+        ...
+    }
+
+Al terminar el loop, recién ahí se escribe en Cassandra un único INSERT
+por jugador con los totales ya calculados, sin aritmética:
+
+    INSERT INTO estadisticas_jugador
+    (jugador_id, nombre, partidas_jugadas, xp_total, kills_total, ...)
+    VALUES ('jugador_001', 'Juan García', 7, 340, 82, ...)
+
+Esto lo hace la función flush_estadisticas() que se llama una sola vez
+después del loop en demo().
+
+COMO QUEDO
+----------
+Antes: 50 updates en Cassandra con aritmética, uno por partida → error.
+
+Ahora: 50 partidas se insertan normalmente en las tablas de historial,
+y al final se hace 1 INSERT por jugador en estadisticas_jugador con los
+totales finales → sin error, y más eficiente.
